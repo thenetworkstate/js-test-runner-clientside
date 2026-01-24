@@ -7,6 +7,7 @@
   "types": "./output/index.d.ts",
   "exports": {
     ".": {
+      "types": "./output/index.d.ts",
       "import": "./output/imported.mjs",
       "require": "./output/required.cjs",
       "default": "./output/fallback.js"
