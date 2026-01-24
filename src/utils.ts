@@ -211,12 +211,30 @@ export function importNameWithoutExtension(path: string, sep = "/"): string {
  * @param code
  * @returns blob://<....>
  */
-const makeEsModulizer = (type = 'text/javascript') => ({ raw }: TemplateStringsArray, ...vals: string[]) =>
-  URL.createObjectURL(
-    new Blob([String.raw({ raw } as any, ...vals)], {
-      type,
+const makeEsModulizer = (type = 'text/javascript') => ({ raw }: TemplateStringsArray, ...vals: string[]) => {
+  let modulized = String.raw({ raw } as any, ...vals);
+
+  if (type !== 'text/javascript') {
+    switch (type) {
+      case 'text/html': {
+        modulized = `export default \`${modulized.replace(/`/g, '\\`')}\``
+        break;
+      }
+
+      case 'application/json': {
+        modulized = `export default ${modulized}`
+        break;
+      }
+    }
+  }
+
+  return URL.createObjectURL(
+    new Blob([modulized], {
+      type: 'text/javascript',
     }),
   );
+}
+
 
 export const esm = makeEsModulizer();
 export const esmHtml = makeEsModulizer('text/html');

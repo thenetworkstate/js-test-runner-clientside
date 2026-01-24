@@ -1,8 +1,11 @@
+import { SubmissionError, UnsupportedError } from "./errors";
 import {
-  SubmissionError,
-  UnsupportedError
-} from "./errors";
-import { esm, esmHtml, esmJson, importNameWithoutExtension, SolutionCode } from "./utils";
+  esm,
+  esmHtml,
+  esmJson,
+  importNameWithoutExtension,
+  SolutionCode,
+} from "./utils";
 
 /**
  * Test helper that will actually run the tests in-line and export a live object
@@ -98,7 +101,10 @@ export function prepare(
 
   // Enable logger for user code
   for (const filePath in user) {
-    const userCode = `
+    const userCode =
+      filePath.endsWith(".html") || filePath.endsWith(".json")
+        ? user[filePath]
+        : `
 import { log } from '${globalLogger}'
 
 ${user[filePath]}
@@ -130,7 +136,7 @@ ${user[filePath]}
         (importText) => `/* ${importText} */`,
       )
       .split("\n");
-  
+
     // Add test helper below main `import { ... } from './solution`
     let injectIndex = lines.findIndex((l) => l.indexOf("from ") !== -1) + 1;
     if (injectIndex === -1) {
@@ -152,7 +158,12 @@ ${user[filePath]}
 
   for (const filePath of dependencyOrder) {
     const code = user[filePath] ?? test[filePath] ?? shared[filePath];
-    const importedCode = filePath.endsWith('.html') || filePath.endsWith('.htm') ? esmHtml`${code}` : filePath.endsWith('.json') ? esmJson`${code}` : esm`${code}`;
+    const importedCode =
+      filePath.endsWith(".html") || filePath.endsWith(".htm")
+        ? esmHtml`${code}`
+        : filePath.endsWith(".json")
+          ? esmJson`${code}`
+          : esm`${code}`;
 
     urls[filePath] = importedCode;
     if (filePath in test) {

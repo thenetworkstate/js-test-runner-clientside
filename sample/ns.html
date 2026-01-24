@@ -1,0 +1,167 @@
+<style>
+  form {
+    display: flex;
+    flex-direction: column;
+
+    max-width: 65ch;
+
+    textarea {
+      field-sizing: content;
+    }
+  }
+
+  output {
+    color: red;
+    font-family: monospace;
+    white-space: pre;
+  }
+</style>
+
+<form id="form">
+  <label for="usercode-html">User HTML</label>
+  <textarea
+    name="files[file.html]"
+    id="usercode-html">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;Sample test and input&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    Sample body
+  &lt;/body&gt;
+&lt;/html&gt;</textarea
+  >
+
+  <label for="usercode-json">User JSON</label>
+  <textarea
+    name="files[file.json]"
+    id="usercode-json">
+{
+  "area": 51
+}
+</textarea
+  >
+
+  <label for="gluecode">Glue code</label>
+  <textarea
+    name="files[glue.mjs]"
+    id="gluecode">
+import html from './file.html';
+import json from './file.json';
+
+export { html, json }
+</textarea
+  >
+
+  <label for="testcode">Test code</label>
+  <textarea
+    name="files[file.spec.js]"
+    id="testcode">
+import {
+  afterEach,
+  beforeEach,
+  describe,
+  expect,
+  test,
+} from '@jest/globals';
+import { html, json } from './glue';
+
+describe('ns', () => {
+  test('has html', () => {
+    expect(html).toMatch(/^&lt;!DOCTYPE html&gt;/i);
+  });
+
+  test('has json', () => {
+    expect(JSON.parse(json)).not.toEqual(null);
+  });
+});
+</textarea
+  >
+
+  <label for="config">Config</label>
+  <textarea
+    name="files[.meta/config.json]"
+    id="config">
+{
+  "authors": [
+    "SleeplessByte"
+  ],
+  "contributors": [
+  ],
+  "files": {
+    "solution": [
+      "file.html",
+      "file.json"
+    ],
+    "test": [
+      "file.spec.js"
+    ],
+    "editor": [
+      "glue.mjs"
+    ],
+    "example": [
+      ".meta/proof.ci.js"
+    ]
+  },
+  "blurb": "",
+  "custom": {
+    "version.tests.compatibility": "jest-27",
+    "flag.tests.task-per-describe": false,
+    "flag.tests.may-run-long": false,
+    "flag.tests.includes-optional": true
+  }
+}
+</textarea
+  >
+
+  <label for="slug">Slug</label>
+  <input
+    type="string"
+    value="file"
+    name="slug"
+    id="slug" />
+
+  <button>Submit</button>
+</form>
+
+<output id="output"> </output>
+
+<script type="module">
+  import { runTests } from "./imported.mjs";
+
+  let abortController;
+
+  function onRunTests(event) {
+    event.preventDefault();
+
+    if (abortController) {
+      abortController.abort("Another run was requested");
+    }
+
+    abortController = new AbortController();
+
+    const form = event.currentTarget;
+    const slug = form.querySelector('input[name="slug"]').value;
+
+    const fileInputs = form.querySelectorAll('textarea[name^="files["]');
+    const files = {};
+    fileInputs.forEach((file) => {
+      const filePath = file
+        .getAttribute("name")
+        .replace(/^files\[/, "")
+        .replace(/\]$/, "");
+      files[filePath] = file.value;
+    });
+
+    const output = document.getElementById("output");
+    output.textContent = null;
+
+    runTests(slug, files, ["file.html", "file.json"], abortController.signal).then(
+      (result) => (output.textContent = JSON.stringify(result, null, 2)),
+    );
+  }
+
+  const form = document.getElementById("form");
+  form.addEventListener("submit", onRunTests);
+</script>
