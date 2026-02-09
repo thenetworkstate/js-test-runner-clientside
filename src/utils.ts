@@ -216,7 +216,9 @@ const makeEsModulizer = (type = 'text/javascript') => ({ raw }: TemplateStringsA
 
   if (type !== 'text/javascript') {
     switch (type) {
-      case 'text/html': {
+      case 'text/html':
+      case 'text/css':
+      case 'text/plain': {
         modulized = `export default \`${modulized.replace(/`/g, '\\`')}\``
         break;
       }
@@ -237,5 +239,5 @@ const makeEsModulizer = (type = 'text/javascript') => ({ raw }: TemplateStringsA
 
 
 export const esm = makeEsModulizer();
-export const esmHtml = makeEsModulizer('text/html');
+export const esmRawFileLike = makeEsModulizer('text/plain');
 export const esmJson = makeEsModulizer('application/json');

@@ -8,6 +8,7 @@ export type TranspileFn = (
 export interface OutputOptions {
   "flag.tests.task-per-describe"?: boolean;
   "flag.tests.includes-optional"?: boolean;
+  "flag.tests.fail-fast"?: boolean
 }
 
 export type GenerateOutputFn<T extends OutputOptions = OutputOptions> = (

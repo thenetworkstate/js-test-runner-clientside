@@ -4,7 +4,7 @@ import {
   TimeoutError,
 } from "./errors";
 import { generateOutput as generateJavaScriptOutput } from "./output";
-import { prepare } from "./prepare";
+import { prepare, PrepareOptions } from "./prepare";
 import type {
   FailedTestRun,
   GenerateOutputFn,
@@ -101,7 +101,10 @@ async function runJestTests(
     includesOptionalTests: Boolean(
       config.custom && config.custom["flag.tests.includes-optional"],
     ),
-  };
+    failFast: Boolean(
+      config.custom && config.custom["flag.tests.fail-fast"],
+    ),
+  } satisfies PrepareOptions;
 
   const { entry, urls } = prepare(code, runOptions);
 
