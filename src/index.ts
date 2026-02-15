@@ -19,7 +19,7 @@ export type * from "./types";
 export * from "./utils";
 
 import jestExpect from "expect";
-import jest from "jest-mock";
+import { ModuleMocker } from "jest-mock";
 import { workerize } from "./workerize";
 
 export function runTests(
@@ -98,6 +98,9 @@ async function runJestTests(
     enableTaskIds: Boolean(
       config.custom && config.custom["flag.tests.task-per-describe"],
     ),
+    includesOptionalTests: Boolean(
+      config.custom && config.custom["flag.tests.includes-optional"],
+    ),
   };
 
   const { entry, urls } = prepare(code, runOptions);
@@ -105,12 +108,30 @@ async function runJestTests(
   // Set some globals
   const globals = globalThis as Record<string, any>;
   globals["expect"] = jestExpect;
-  globals["jest"] = jest;
+
+  const _moduleMocker = new ModuleMocker(globalThis);
+  const fn = _moduleMocker.fn.bind(_moduleMocker);
+  const spyOn = _moduleMocker.spyOn.bind(_moduleMocker);
+  const mocked = _moduleMocker.mocked.bind(_moduleMocker);
+  const replaceProperty = _moduleMocker.replaceProperty.bind(_moduleMocker);
+  const clearAllMocks = _moduleMocker.clearAllMocks.bind(_moduleMocker);
+  const resetAllMocks = _moduleMocker.resetAllMocks.bind(_moduleMocker);
+  const restoreAllMocks = _moduleMocker.restoreAllMocks.bind(_moduleMocker);
+
+  globals["jest"] = {
+    fn,
+    spyOn,
+    mocked,
+    replaceProperty,
+    clearAllMocks,
+    resetAllMocks,
+    restoreAllMocks,
+  };
 
   // Keep references so they can be cleaned up
   const references: {
-    timer: undefined | NodeJS.Timeout;
-    interval: undefined | NodeJS.Timeout;
+    timer: undefined | number;
+    interval: undefined | number;
   } = {
     timer: undefined,
     interval: undefined,
@@ -167,8 +188,8 @@ function makeWorkerRunner(
   entry: string,
   signal: AbortSignal | undefined,
   references: {
-    timer: undefined | NodeJS.Timeout;
-    interval: undefined | NodeJS.Timeout;
+    timer: undefined | number;
+    interval: undefined | number;
   },
 ) {
   return async function onWorker(
@@ -178,6 +199,17 @@ function makeWorkerRunner(
       worker.addEventListener(
         "message",
         (message) => {
+          // Unlikely but in case something posts to the worker
+          if (
+            !message ||
+            !message.data ||
+            typeof message.data !== "object" ||
+            message.data._type !==
+              "vnd.exercism.javascript-browser-test-runner.result"
+          ) {
+            return;
+          }
+
           console.debug("[main] worker completed run", message);
           resolve(message.data);
         },
@@ -197,7 +229,12 @@ function makeWorkerRunner(
       );
 
       // Start the tests
-      worker.postMessage({ entry, timeout: 30 });
+      worker.postMessage({
+        _type: "vnd.exercism.javascript-browser-test-runner.start",
+        entry,
+        timeout: 30,
+        source: "@exercism/javascript-browser-test-runner",
+      });
     });
 
     const abort = onAbortRun(signal);
@@ -223,8 +260,8 @@ function makeMainThreadRunner(
   entry: string,
   signal: AbortSignal | undefined,
   references: {
-    timer: undefined | NodeJS.Timeout;
-    interval: undefined | NodeJS.Timeout;
+    timer: undefined | number;
+    interval: undefined | number;
   },
 ) {
   return async function onInline() {
@@ -254,8 +291,8 @@ function onCompletedRun(
   run: TestRun,
   timeout: number,
   references: {
-    timer: undefined | NodeJS.Timeout;
-    interval: undefined | NodeJS.Timeout;
+    timer: undefined | number;
+    interval: undefined | number;
   },
 ) {
   return new Promise<TestRun>((resolve, reject) => {

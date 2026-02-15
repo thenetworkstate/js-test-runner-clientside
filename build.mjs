@@ -2,6 +2,12 @@ import { build } from "esbuild";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import { nodeModulesPolyfillPlugin } from "esbuild-plugins-node-modules-polyfill";
 import { mockFsPlugin } from "./build/mock-fs.mjs";
+import { join } from "node:path";
+import { copyFileSync } from "node:fs";
+
+function toBoolean(value) {
+  return value === "1" || value === "true" || value === 1 || value === true;
+}
 
 await Promise.all([
   build({
@@ -11,6 +17,9 @@ await Promise.all([
     bundle: true,
     platform: "browser",
     target: browserslistToEsbuild(),
+    loader: {
+      ".txt.js": "text",
+    },
     format: "esm",
     plugins: [
       nodeModulesPolyfillPlugin({
@@ -21,9 +30,9 @@ await Promise.all([
       }),
       mockFsPlugin,
     ],
-    sourcemap: true,
+    sourcemap: !toBoolean(process.env.NO_SOURCE_MAP),
     keepNames: true,
-    minify: true,
+    minify: toBoolean(process.env.MINIFY ?? "true"),
   }),
   build({
     inject: ["./build/process-shim.js"],
@@ -32,6 +41,9 @@ await Promise.all([
     bundle: true,
     platform: "browser",
     target: browserslistToEsbuild(),
+    loader: {
+      ".txt.js": "text",
+    },
     format: "cjs",
     plugins: [
       nodeModulesPolyfillPlugin({
@@ -42,9 +54,9 @@ await Promise.all([
       }),
       mockFsPlugin,
     ],
-    sourcemap: true,
+    sourcemap: !toBoolean(process.env.NO_SOURCE_MAP),
     keepNames: true,
-    minify: true,
+    minify: toBoolean(process.env.MINIFY ?? "true"),
   }),
   build({
     inject: ["./build/process-shim.js"],
@@ -53,6 +65,9 @@ await Promise.all([
     bundle: true,
     platform: "browser",
     target: browserslistToEsbuild(),
+    loader: {
+      ".txt.js": "text",
+    },
     format: "iife",
     plugins: [
       nodeModulesPolyfillPlugin({
@@ -63,9 +78,9 @@ await Promise.all([
       }),
       mockFsPlugin,
     ],
-    sourcemap: true,
+    sourcemap: !toBoolean(process.env.NO_SOURCE_MAP),
     keepNames: true,
-    minify: true,
+    minify: toBoolean(process.env.MINIFY ?? "true"),
   }),
   build({
     inject: ["./build/process-shim.js", "./build/mock-window.js"],
@@ -74,6 +89,9 @@ await Promise.all([
     bundle: true,
     platform: "browser",
     target: browserslistToEsbuild(),
+    loader: {
+      ".txt.js": "text",
+    },
     format: "esm",
     plugins: [
       nodeModulesPolyfillPlugin({
@@ -84,8 +102,22 @@ await Promise.all([
       }),
       mockFsPlugin,
     ],
-    sourcemap: true,
+    sourcemap: !toBoolean(process.env.NO_SOURCE_MAP),
     keepNames: true,
-    minify: true,
+    minify: toBoolean(process.env.MINIFY ?? "true"),
   }),
 ]);
+
+const source = join(import.meta.dirname, "output");
+const destination = join(import.meta.dirname, "sample");
+const files = [
+  "imported.mjs",
+  "imported.mjs.map",
+  "javascript-browser-test-runner-worker.mjs",
+  "javascript-browser-test-runner-worker.mjs.map",
+];
+
+files.forEach((file) => {
+  console.log(join(source, file), join(destination, file));
+  copyFileSync(join(source, file), join(destination, file));
+});

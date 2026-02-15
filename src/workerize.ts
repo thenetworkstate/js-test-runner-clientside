@@ -37,6 +37,8 @@ async function makeWorker() {
     });
   }
 
+  console.debug(`[worker] path: ${workerPath}`);
+
   if (__pathsExists[workerPath] === undefined) {
     __pathsExists[workerPath] = false;
     await import(workerPath);
@@ -57,6 +59,8 @@ function supportsWorkerType() {
   if (!window.Worker) {
     return (__supportsModuleWorkers.result = false);
   }
+
+  console.debug(`[worker] testing module worker`);
 
   const tester = {
     get type() {

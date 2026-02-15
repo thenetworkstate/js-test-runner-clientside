@@ -1,0 +1,228 @@
+<style>
+  form {
+    display: flex;
+    flex-direction: column;
+
+    max-width: 65ch;
+
+    textarea {
+      field-sizing: content;
+    }
+  }
+
+  output {
+    color: red;
+    font-family: monospace;
+    white-space: pre;
+  }
+</style>
+
+<form id="form">
+  <label for="usercode">User code</label>
+  <textarea
+    name="files[captains-log.js]"
+    id="usercode">
+// @ts-check
+
+/**
+ * Generates a random starship registry number.
+ *
+ * @returns {string} the generated registry number.
+ */
+export function randomShipRegistryNumber() {
+  return `NCC-${Math.floor(1000 + Math.random() * 9000)}`;
+}
+
+/**
+ * Generates a random stardate.
+ *
+ * @returns {number} a stardate between 41000 (inclusive) and 42000 (exclusive).
+ */
+export function randomStardate() {
+  return 41000 + Math.random() * 1000;
+}
+
+const PLANET_CLASSES = 'DHJKLMNRTY';
+
+/**
+ * Generates a random planet class.
+ *
+ * @returns {string} a one-letter planet class.
+ */
+export function randomPlanetClass() {
+  return PLANET_CLASSES[Math.floor(Math.random() * PLANET_CLASSES.length)];
+}
+</textarea
+  >
+
+  <label for="testcode">Test code</label>
+  <textarea
+    name="files[captains-log.spec.js]"
+    id="testcode">
+import { describe, expect, test, beforeEach, afterEach } from '@jest/globals';
+import {
+  randomShipRegistryNumber,
+  randomStardate,
+  randomPlanetClass,
+} from './captains-log';
+
+describe('randomShipRegistryNumber', () => {
+  test('registry numbers are valid', () => {
+    for (let i = 0; i < 4; i++) {
+      expect(randomShipRegistryNumber()).toMatch(/NCC-[1-9][0-9]{3}/);
+    }
+  });
+
+  test('returns a random registry number', () => {
+    expect(randomShipRegistryNumber()).not.toEqual(randomShipRegistryNumber());
+  });
+});
+
+function loadDie(...values) {
+  const originalRandom = Math.random;
+
+  Math.random = function loadedDie() {
+    if (values.length === 0) {
+      return originalRandom();
+    }
+    return values.shift();
+  };
+
+  return () => {
+    Math.random = originalRandom;
+  };
+}
+
+describe('randomStardate', () => {
+  let restore;
+
+  beforeEach(() => {
+    const min = 0;
+    const max = 1 - Number.EPSILON * 32;
+
+    // prettier-ignore
+    restore = loadDie(
+      min, min, min, min, min, min,
+      max, max, max, max, max, max,
+      0.5, 0.5, 0.5, 0.5, 0.5, 0.5
+    );
+  });
+
+  afterEach(() => {
+    if (restore) {
+      restore();
+      restore = undefined;
+    }
+  });
+
+  test('stardate is between 41000 and 42000', () => {
+    for (let i = 0; i < 10_000; i++) {
+      const starDate = randomStardate();
+      expect(starDate).toBeGreaterThanOrEqual(41_000);
+      expect(starDate).toBeLessThan(42_000);
+    }
+  });
+});
+
+describe('randomPlanetClass', () => {
+  test('planet classes are valid', () => {
+    const expected = 'DHJKLMNRTY';
+    for (let i = 0; i < 1_000; i++) {
+      const actual = randomPlanetClass();
+      expect(expected).toContain(actual);
+    }
+  });
+
+  test('all planet classes can be returned', () => {
+    const expected = 'DHJKLMNRTY';
+    const seen = {};
+
+    for (let i = 0; i < 1_000; i++) {
+      const actual = randomPlanetClass();
+      seen[actual] = true;
+    }
+
+    expect(Object.keys(seen).length).toBe(expected.length);
+  });
+});
+</textarea
+  >
+
+  <label for="config">Config</label>
+  <textarea
+    name="files[.meta/config.json]"
+    id="config">
+{
+  "authors": [
+    "SneakyMallard"
+  ],
+  "contributors": [
+    "SleeplessByte"
+  ],
+  "files": {
+    "solution": [
+      "captains-log.js"
+    ],
+    "test": [
+      "captains-log.spec.js"
+    ],
+    "exemplar": [
+      ".meta/exemplar.js"
+    ]
+  },
+  "blurb": "Learn about randomness and the Math.random() function while helping Mary generate stardates and starship registry numbers for her Star Trek roleplay."
+}
+
+</textarea
+  >
+
+  <label for="slug">Slug</label>
+  <input
+    type="string"
+    value="captains-log"
+    name="slug"
+    id="slug" />
+
+  <button>Submit</button>
+</form>
+
+<output id="output"> </output>
+
+<script type="module">
+  import { runTests } from "./imported.mjs";
+
+  let abortController;
+
+  function onRunTests(event) {
+    event.preventDefault();
+
+    if (abortController) {
+      abortController.abort("Another run was requested");
+    }
+
+    abortController = new AbortController();
+
+    const form = event.currentTarget;
+    const slug = form.querySelector('input[name="slug"]').value;
+
+    const fileInputs = form.querySelectorAll('textarea[name^="files["]');
+    const files = {};
+    fileInputs.forEach((file) => {
+      const filePath = file
+        .getAttribute("name")
+        .replace(/^files\[/, "")
+        .replace(/\]$/, "");
+      files[filePath] = file.value;
+    });
+
+    const output = document.getElementById("output");
+    output.textContent = null;
+
+    runTests(slug, files, ["captains-log.js"], abortController.signal).then(
+      (result) => (output.textContent = JSON.stringify(result, null, 2)),
+    );
+  }
+
+  const form = document.getElementById("form");
+  form.addEventListener("submit", onRunTests);
+</script>

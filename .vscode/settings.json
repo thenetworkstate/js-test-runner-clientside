@@ -5,6 +5,13 @@
   },
   "typescript.tsdk": ".yarn/sdks/typescript/lib",
   "typescript.enablePromptUseWorkspaceTsdk": true,
-  "cSpell.words": ["Dispatchable", "exercism", "workerize"],
+  "cSpell.words": [
+    "Dispatchable",
+    "exercism",
+    "Stardate",
+    "workerize",
+    "xdescribe",
+    "xtest"
+  ],
   "prettier.prettierPath": ".yarn/sdks/prettier/index.cjs"
 }
