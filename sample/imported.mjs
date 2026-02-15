@@ -25685,17 +25685,10 @@ ${user[filePath]}
     if (!test[filePath].includes("describe(") && Object.keys(test).length === 1) {
       test[filePath] = "finishSuite()";
     }
-    const lines = test[filePath].trim().split("\n");
-    const globalsImportLineIndex = lines.findIndex(
-      (l) => l.indexOf("import ") !== -1 && l.indexOf("from '@jest/globals'") !== -1
-    );
-    if (globalsImportLineIndex !== -1) {
-      lines.splice(
-        globalsImportLineIndex,
-        1,
-        "// import { ... } from '@jest/globals'"
-      );
-    }
+    const lines = test[filePath].trim().replace(
+      /import\s+.*?\s+from\s+['"]@jest\/globals['"];?/s,
+      (importText) => `/* ${importText} */`
+    ).split("\n");
     let injectIndex = lines.findIndex((l) => l.indexOf("from ") !== -1) + 1;
     if (injectIndex === -1) {
       lines.unshift(...test_helper_txt_default);

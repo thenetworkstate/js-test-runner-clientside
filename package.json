@@ -28,7 +28,7 @@
     "url": "https://github.com/exercism/js-test-runner-clientside/issues"
   },
   "homepage": "https://github.com/exercism/js-test-runner-clientside#readme",
-  "packageManager": "yarn@4.9.1",
+  "packageManager": "yarn@4.12.0",
   "devDependencies": {
     "browserslist": "^4.28.1",
     "browserslist-to-esbuild": "^2.1.1",
