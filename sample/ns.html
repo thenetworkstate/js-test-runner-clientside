@@ -70,10 +70,19 @@ import { html, json } from './glue';
 describe('ns', () => {
   test('has html', () => {
     expect(html).toMatch(/^&lt;!DOCTYPE html&gt;/i);
+
+    const dom = parseDocument(html);
+    expect(dom.type).toBe('root');
+    expect(dom.children[0]).toBeDefined();
+    expect(dom.children[0].type).toBe('directive');
+    expect(dom.children[0].name).toBe('!doctype');
   });
 
   test('has json', () => {
-    expect(JSON.parse(json)).not.toEqual(null);
+    expect(json).not.toEqual(null);
+    expect(typeof json).toBe('object');
+    expect(json.area).toBeDefined();
+    expect(json.area).toBe(51);
   });
 });
 </textarea

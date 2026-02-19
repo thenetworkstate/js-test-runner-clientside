@@ -211,33 +211,34 @@ export function importNameWithoutExtension(path: string, sep = "/"): string {
  * @param code
  * @returns blob://<....>
  */
-const makeEsModulizer = (type = 'text/javascript') => ({ raw }: TemplateStringsArray, ...vals: string[]) => {
-  let modulized = String.raw({ raw } as any, ...vals);
+const makeEsModulizer =
+  (type = "text/javascript") =>
+  ({ raw }: TemplateStringsArray, ...vals: string[]) => {
+    let modulized = String.raw({ raw } as any, ...vals);
 
-  if (type !== 'text/javascript') {
-    switch (type) {
-      case 'text/html':
-      case 'text/css':
-      case 'text/plain': {
-        modulized = `export default \`${modulized.replace(/`/g, '\\`')}\``
-        break;
-      }
+    if (type !== "text/javascript") {
+      switch (type) {
+        case "text/html":
+        case "text/css":
+        case "text/plain": {
+          modulized = `export default \`${modulized.replace(/`/g, "\\`")}\``;
+          break;
+        }
 
-      case 'application/json': {
-        modulized = `export default ${modulized}`
-        break;
+        case "application/json": {
+          modulized = `export default ${modulized}`;
+          break;
+        }
       }
     }
-  }
 
-  return URL.createObjectURL(
-    new Blob([modulized], {
-      type: 'text/javascript',
-    }),
-  );
-}
-
+    return URL.createObjectURL(
+      new Blob([modulized], {
+        type: "text/javascript",
+      }),
+    );
+  };
 
 export const esm = makeEsModulizer();
-export const esmRawFileLike = makeEsModulizer('text/plain');
-export const esmJson = makeEsModulizer('application/json');
+export const esmRawFileLike = makeEsModulizer("text/plain");
+export const esmJson = makeEsModulizer("application/json");

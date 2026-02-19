@@ -21,6 +21,7 @@ export * from "./utils";
 import jestExpect from "expect";
 import { ModuleMocker } from "jest-mock";
 import { workerize } from "./workerize";
+import { parseDocument } from "htmlparser2";
 
 export function runTests(
   _slug: string,
@@ -42,6 +43,7 @@ export function runTests(
   signal: AbortSignal,
   transpile: TranspileFn | undefined,
   generateOutput: GenerateOutputFn<OutputOptions>,
+  keep?: boolean,
 ): Promise<OutputInterface>;
 
 export async function runTests(
@@ -51,11 +53,17 @@ export async function runTests(
   signal?: AbortSignal,
   transpile: TranspileFn = (code) => code,
   generateOutput: GenerateOutputFn<OutputOptions> = generateJavaScriptOutput,
+  keep = false,
 ): Promise<OutputInterface> {
-  return runJestTests({ files, userPaths }, signal, {
-    transpile,
-    generateOutput,
-  }).catch((error: unknown) => {
+  return runJestTests(
+    { files, userPaths },
+    signal,
+    {
+      transpile,
+      generateOutput,
+    },
+    keep,
+  ).catch((error: unknown) => {
     let message: string;
 
     if (error instanceof Error) {
@@ -87,6 +95,7 @@ async function runJestTests(
     transpile: TranspileFn;
     generateOutput: GenerateOutputFn<OutputOptions>;
   },
+  keep = false,
 ) {
   const { files, userPaths } = solution;
   const { transpile, generateOutput } = callbacks;
@@ -101,9 +110,7 @@ async function runJestTests(
     includesOptionalTests: Boolean(
       config.custom && config.custom["flag.tests.includes-optional"],
     ),
-    failFast: Boolean(
-      config.custom && config.custom["flag.tests.fail-fast"],
-    ),
+    failFast: Boolean(config.custom && config.custom["flag.tests.fail-fast"]),
   } satisfies PrepareOptions;
 
   const { entry, urls } = prepare(code, runOptions);
@@ -111,6 +118,7 @@ async function runJestTests(
   // Set some globals
   const globals = globalThis as Record<string, any>;
   globals["expect"] = jestExpect;
+  globals["parseDocument"] = parseDocument;
 
   const _moduleMocker = new ModuleMocker(globalThis);
   const fn = _moduleMocker.fn.bind(_moduleMocker);
@@ -142,7 +150,12 @@ async function runJestTests(
 
   function cleanup() {
     console.debug("[suite] cleaning up run", urls);
-    Object.values(urls).forEach((objectUrl) => URL.revokeObjectURL(objectUrl));
+
+    if (!keep) {
+      Object.values(urls).forEach((objectUrl) =>
+        URL.revokeObjectURL(objectUrl),
+      );
+    }
 
     clearInterval(references.interval);
     clearTimeout(references.timer);

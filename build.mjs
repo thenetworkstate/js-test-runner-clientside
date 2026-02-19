@@ -1,18 +1,14 @@
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import { build } from "esbuild";
 import { nodeModulesPolyfillPlugin } from "esbuild-plugins-node-modules-polyfill";
-import { mockFsPlugin } from "./build/mock-fs.mjs";
-import { join } from "node:path";
+import { spawnSync } from "node:child_process";
 import { copyFileSync } from "node:fs";
+import { join } from "node:path";
+import { mockFsPlugin } from "./build/mock-fs.mjs";
 
 function toBoolean(value) {
   return value === "1" || value === "true" || value === 1 || value === true;
 }
-
-import { spawnSync } from "node:child_process";
-import { copyFileSync } from "node:fs";
-import { basename, join } from "node:path";
-
 
 await Promise.all([
   build({

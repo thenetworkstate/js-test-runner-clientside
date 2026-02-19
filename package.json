@@ -53,5 +53,8 @@
   ],
   "browserslist": [
     "defaults and fully supports es6-module"
-  ]
+  ],
+  "dependencies": {
+    "htmlparser2": "^10.1.0"
+  }
 }

@@ -13,7 +13,11 @@ import {
  */
 import TEST_HELPER from "./test-helper.txt.js";
 
-export type PrepareOptions = { enableTaskIds: boolean, includesOptionalTests: boolean, failFast: boolean };
+export type PrepareOptions = {
+  enableTaskIds: boolean;
+  includesOptionalTests: boolean;
+  failFast: boolean;
+};
 export type PreparedCode = {
   readonly entry: string;
   readonly urls: Readonly<Record<string, string>>;
@@ -29,7 +33,11 @@ export type PreparedCode = {
  */
 export function prepare(
   code: SolutionCode,
-  options: PrepareOptions = { enableTaskIds: false, includesOptionalTests: false, failFast: true },
+  options: PrepareOptions = {
+    enableTaskIds: false,
+    includesOptionalTests: false,
+    failFast: true,
+  },
 ): PreparedCode {
   const globalLogger = esm`${LOGGER}`;
   const urls: Record<string, string> = { "logger.js": globalLogger };
@@ -140,7 +148,10 @@ ${user[filePath]}
     // Add test helper below main `import { ... } from './solution`
     let injectIndex = lines.findIndex((l) => l.indexOf("from ") !== -1) + 1;
 
-    const runTestHelperLines = TEST_HELPER.replace('let failFast = true', `let failFast = ${Boolean(options.failFast)}`).split("\n")
+    const runTestHelperLines = TEST_HELPER.replace(
+      "let failFast = true",
+      `let failFast = ${Boolean(options.failFast)}`,
+    ).split("\n");
     if (injectIndex === -1) {
       lines.unshift(...runTestHelperLines);
     } else {
@@ -161,7 +172,10 @@ ${user[filePath]}
   for (const filePath of dependencyOrder) {
     const code = user[filePath] ?? test[filePath] ?? shared[filePath];
     const importedCode =
-      filePath.endsWith(".html") || filePath.endsWith(".htm") || filePath.endsWith('.css') || filePath.endsWith('.sql')
+      filePath.endsWith(".html") ||
+      filePath.endsWith(".htm") ||
+      filePath.endsWith(".css") ||
+      filePath.endsWith(".sql")
         ? esmRawFileLike`${code}`
         : filePath.endsWith(".json")
           ? esmJson`${code}`

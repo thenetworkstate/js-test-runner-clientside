@@ -1,9 +1,11 @@
 import jestExpect from "expect";
 import { ModuleMocker } from "jest-mock";
+import { parseDocument } from "htmlparser2";
 
 // Set some globals
 const globals = globalThis as Record<string, any>;
 globals["expect"] = jestExpect;
+globals["parseDocument"] = parseDocument;
 
 const _moduleMocker = new ModuleMocker(globalThis);
 const fn = _moduleMocker.fn.bind(_moduleMocker);
