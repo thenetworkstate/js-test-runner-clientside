@@ -211,9 +211,13 @@ export function importNameWithoutExtension(path: string, sep = "/"): string {
  * @param code
  * @returns blob://<....>
  */
-export const esm = ({ raw }: TemplateStringsArray, ...vals: string[]) =>
+const makeEsModulizer = (type = 'text/javascript') => ({ raw }: TemplateStringsArray, ...vals: string[]) =>
   URL.createObjectURL(
     new Blob([String.raw({ raw } as any, ...vals)], {
-      type: "text/javascript",
+      type,
     }),
   );
+
+export const esm = makeEsModulizer();
+export const esmHtml = makeEsModulizer('text/html');
+export const esmJson = makeEsModulizer('application/json');

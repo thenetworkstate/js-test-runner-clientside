@@ -79,8 +79,8 @@ onmessage = function (event) {
       }, 16);
     },
     (error) => {
-      console.error(`[test-worker] ${error}`);
       debugger;
+      console.error(`[test-worker] ${error}`, error.cause, error.stack);
       throw new Error(
         "Could not start test runner because import of entry failed.",
       );

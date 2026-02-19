@@ -13,10 +13,10 @@
     }
   },
   "scripts": {
-    "prepack": "yarn build",
-    "build": "yarn rimraf output && yarn node build.mjs && tsc",
-    "build:dev": "yarn rimraf output && cross-env MINIFY=false yarn node build.mjs && tsc",
-    "sample": "yarn build:dev && yarn dlx serve sample"
+    "prepack": "pnpm build",
+    "build": "pnpm rimraf output && pnpm node build.mjs && tsc",
+    "build:dev": "pnpm rimraf output && cross-env MINIFY=false pnpm node build.mjs && tsc",
+    "sample": "pnpm build:dev && pnpm dlx serve sample"
   },
   "repository": {
     "type": "git",
@@ -28,8 +28,8 @@
     "url": "https://github.com/exercism/js-test-runner-clientside/issues"
   },
   "homepage": "https://github.com/exercism/js-test-runner-clientside#readme",
-  "packageManager": "yarn@4.12.0",
   "devDependencies": {
+    "baseline-browser-mapping": "^2.9.17",
     "browserslist": "^4.28.1",
     "browserslist-to-esbuild": "^2.1.1",
     "cross-env": "^10.1.0",

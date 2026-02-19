@@ -1,9 +1,8 @@
 import {
-  BrowserTestRunnerError,
   SubmissionError,
-  UnsupportedError,
+  UnsupportedError
 } from "./errors";
-import { esm, importNameWithoutExtension, SolutionCode } from "./utils";
+import { esm, esmHtml, esmJson, importNameWithoutExtension, SolutionCode } from "./utils";
 
 /**
  * Test helper that will actually run the tests in-line and export a live object
@@ -153,7 +152,7 @@ ${user[filePath]}
 
   for (const filePath of dependencyOrder) {
     const code = user[filePath] ?? test[filePath] ?? shared[filePath];
-    const importedCode = esm`${code}`;
+    const importedCode = filePath.endsWith('.html') || filePath.endsWith('.htm') ? esmHtml`${code}` : filePath.endsWith('.json') ? esmJson`${code}` : esm`${code}`;
 
     urls[filePath] = importedCode;
     if (filePath in test) {
@@ -264,8 +263,9 @@ function makeDependencyGraph(code: {
 function makeImportReplaceMatcher(path: string) {
   const importName = importNameWithoutExtension(path);
 
+  // TODO: check if html and json need to be turned into fetch
   return new RegExp(
-    `["']\\./${importName}(?:\\.(?:ts|js|mjs|cjs|mts|cts|tsx|jsx))?["'];`,
+    `["']\\./${importName}(?:\\.(?:ts|js|mjs|cjs|mts|cts|tsx|jsx|html|json))?["'];`,
   );
 }
 

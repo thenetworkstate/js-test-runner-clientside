@@ -9,6 +9,11 @@ function toBoolean(value) {
   return value === "1" || value === "true" || value === 1 || value === true;
 }
 
+import { copyFileSync, glob, globSync } from "node:fs"
+import { basename, join } from "node:path"
+import { spawnSync } from "node:child_process";
+
+
 await Promise.all([
   build({
     inject: ["./build/process-shim.js"],
@@ -107,6 +112,8 @@ await Promise.all([
     minify: toBoolean(process.env.MINIFY ?? "true"),
   }),
 ]);
+
+spawnSync('tsc')
 
 const source = join(import.meta.dirname, "output");
 const destination = join(import.meta.dirname, "sample");
